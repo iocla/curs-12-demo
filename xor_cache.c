@@ -42,7 +42,7 @@ void main()
     before = rdtscp(); 
     while(proc < (1LL << PROCSIZE)){
       for(i = 0; i < (1LL << MEMSIZE); i = i + (1LL << stride)){
-	rez ~= a[i];
+	rez ^= a[i];
       }
       proc += (1LL << (MEMSIZE - stride)); 
     }
