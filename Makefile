@@ -17,7 +17,7 @@ test_sse: test_sse.o sse.o
 	gcc -g -m32 -o $@ $^
 
 lock: lock.o 
-	g++ -g -lpthread -m32 -o $@ $^ 
+	g++ -g -pthread -m32 -o $@ $^ 
 
 
 
