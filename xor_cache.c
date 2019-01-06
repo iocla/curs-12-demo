@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 static unsigned long long rdtscp(void)
 {
@@ -7,42 +8,49 @@ static unsigned long long rdtscp(void)
   __asm__ __volatile__("rdtscp" : "=a"(lo), "=d"(hi));
   return (unsigned long long)lo | ((unsigned long long)hi << 32);
 }
-#define CHUNKSIZE (1L<<28-2)
-#define PROCSIZE  0x200000000
 
-unsigned long long a[CHUNKSIZE], mx, before, after, rez; 
+/*
+  all size values are powers of 2
+  MEMSIZE 33 implies (1L << 33) = 8Gi of size 8 bytes => 64GiB 
+  PROCSIZE 29 implies 512Mi 
+ */
+#define MEMSIZE  30
+#define PROCSIZE  29
+
+
+unsigned long long *a, x[10], stride, before, after, rez; 
+unsigned long long i, rndx, rnda, rndc;
+unsigned long long proc;
+
 
 void main()
 {
-  unsigned long long i, rndx, rnda, rndc;
-  unsigned long long proc = 0;
-  
-  rndx = 1;
-  rnda = 1103515245; 
-  rndx = 12345;
-  
-  for(i = 0; i < CHUNKSIZE; i++){
-     a[i] = rndx = (rnda * rndx + rndc);
+ 
+  a = malloc((1LL << MEMSIZE) * sizeof(unsigned long long));
+  if(a == NULL){
+    printf("Could not allocate %lld (0x%llx) bytes\n",
+	   (1LL << MEMSIZE) * sizeof(unsigned long long),
+	   (1LL << MEMSIZE) * sizeof(unsigned long long));
+    exit(1);
   }
-  
-  mx = CHUNKSIZE;
-  while(mx >= (1L<<9)){
-    before = rdtscp(); 
+   
+  stride = 9; // 2^9 * 8 bytes = 4K  
+  while(stride <= MEMSIZE-1){
+    
     rez = 0xAAAAAAAAAAAAAAAA;
     proc = 0;
-    while(proc < PROCSIZE){
-      //printf("size= %llx mx=%llx proc= %llx\n", CHUNKSIZE, mx, proc);
-      for(i = 0; i < mx; i++){
-	rez += a[i]; 
+    before = rdtscp(); 
+    while(proc < (1LL << PROCSIZE)){
+      for(i = 0; i < (1LL << MEMSIZE); i = i + (1LL << stride)){
+	rez ~= a[i];
       }
-      proc += mx; 
+      proc += (1LL << (MEMSIZE - stride)); 
     }
     
     after = rdtscp();
-    //printf("size= %llx mx=%llx proc= %llx\n", CHUNKSIZE, mx, proc);
-    printf("size= %llx %lld cycles= %lld\n", mx*8, mx*8, (after - before));
+    printf("stride= %lld cycles= %lld\n", (stride+3), (after - before));
     fflush(stdout); 
-    mx = mx >> 2; 
+    stride = stride + 1; 
   }
 
 }

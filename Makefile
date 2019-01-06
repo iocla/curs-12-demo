@@ -3,7 +3,7 @@ C_FLAGS = -g -m32 -O3
 NASM=nasm
 CC=gcc
 CPP=g++
-BINARIES = test_freq test_rdtsc lock test_sse 
+BINARIES = test_freq test_rdtsc lock test_sse xor_cache 
 
 all: $(BINARIES)
 
@@ -17,7 +17,10 @@ test_sse: test_sse.o sse.o
 	gcc -g -m32 -o $@ $^
 
 lock: lock.o 
-	g++ -g -pthread -m32 -o $@ $^ 
+	g++ -g -pthread -m32 -o $@ $^
+
+xor_cache: xor_cache.c
+	gcc -g -O2 -fPIC -o xor_cache xor_cache.c
 
 
 
