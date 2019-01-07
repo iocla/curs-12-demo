@@ -13,12 +13,15 @@ static unsigned long long rdtscp(void)
   all size values are powers of 2
   MEMSIZE 33 implies (1L << 33) = 8Gi of size 8 bytes => 64GiB 
   PROCSIZE 29 implies 512Mi 
+
+  xor_cache.png and xor_cache.pdf - sample outputs
+  xor_cache.plot - gnuplot script to generate graphs 
  */
 #define MEMSIZE  30
 #define PROCSIZE  29
 
 
-unsigned long long *a, x[10], stride, before, after, rez; 
+unsigned long long *a, stride, before, after, rez; 
 unsigned long long i, rndx, rnda, rndc;
 unsigned long long proc;
 
